@@ -1,0 +1,54 @@
+﻿using BusinessLayer.Concrate;
+using DataAccessLayer.Concrate;
+using DataAccessLayer.EntityFramework;
+using EntityLayer.Concrate;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace MvcProjeKampi.Controllers
+{
+    public class WriterPanelContentController : Controller
+    {
+		// GET: WriterPanelContent
+
+		ContentManager cm = new ContentManager(new EfContentDal());
+		Context c = new Context();
+		public ActionResult Index()
+        {
+            return View();
+        }
+
+		public ActionResult Mycontent(string p)
+		{
+			p = (string)Session["WriterMail"];
+			var writeridinfo = c.Writer.Where(x=>x.WriterMail == p).Select(y=>y.WriteId).FirstOrDefault();
+			var contentvalues = cm.GetListByWriter(writeridinfo);
+			return View(contentvalues);
+		}
+		[HttpGet]
+		public ActionResult AddContent(int id)
+		{
+			ViewBag.d = id;
+			return View();
+		}
+		[HttpPost]
+		public ActionResult AddContent(Content p)
+		{
+			string mail = (string)Session["WriterMail"];
+			var writeridinfo = c.Writer.Where(x => x.WriterMail == mail).Select(y => y.WriteId).FirstOrDefault();
+
+			p.ContentDate = DateTime.Parse(DateTime.Now.ToShortDateString());
+			p.WriteId = writeridinfo;
+			p.ContentStatus = true;
+			cm.ContentAdd(p);
+			return RedirectToAction("Mycontent");
+		}
+		public ActionResult ToDoList()
+		{
+			return View();
+		}
+	}
+}
